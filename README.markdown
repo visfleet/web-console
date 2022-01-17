@@ -8,15 +8,26 @@
 
 _Web Console_ is a debugging tool for your Ruby on Rails applications.
 
+- [vWork](#vwork)
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [FAQ](#faq)
 - [Credits](#credits)
 
+
+## vWork
+
+The web consoel /lib/web-console/session.rb is changed to save command/result/user_id to the model
+that is set by the following example params in development.rb or production.rb in config
+
+```ruby
+  config.webconsole_db_storage = {model: 'WebCommand', columns: {input: 'command', result: 'result', user_id: 'user_id'}}
+```  
+
 ## Installation
 
-Add the following to your `Gemfile`.
+Add the following to your `Gemfile`:
 
 ```ruby
 group :development do
@@ -27,8 +38,8 @@ end
 ## Usage
 
 The web console allows you to create an interactive Ruby session in your
-browser. Those sessions are launched automatically in case of an error, but
-they can also be launched manually in any page.
+browser. Those sessions are launched automatically in case of an error and can
+also be launched manually in any page.
 
 For example, calling `console` in a view will display a console in the current
 page in the context of the view binding.
@@ -56,30 +67,30 @@ have multiple ones, `WebConsole::DoubleRenderError` will be raised.
 
 ## Configuration
 
-_Web Console_ allows you to execute arbitrary code on the server, so you
-should be very careful, who you give access to.
+_Web Console_ allows you to execute arbitrary code on the server. Therefore, be
+very careful who you give access to.
 
-### config.web_console.whitelisted_ips
+### config.web_console.permissions
 
 By default, only requests coming from IPv4 and IPv6 localhosts are allowed.
 
-`config.web_console.whitelisted_ips` lets you control which IP's have access to
+`config.web_console.permissions` lets you control which IP's have access to
 the console.
 
 You can whitelist single IP's or whole networks. Say you want to share your
-console with `192.168.0.100`. You can do this:
+console with `192.168.0.100`:
 
 ```ruby
 class Application < Rails::Application
-  config.web_console.whitelisted_ips = '192.168.0.100'
+  config.web_console.permissions = '192.168.0.100'
 end
 ```
 
-If you want to whitelist the whole private network, you can do:
+If you want to whitelist the whole private network:
 
 ```ruby
 Rails.application.configure do
-  config.web_console.whitelisted_ips = '192.168.0.0/16'
+  config.web_console.permissions = '192.168.0.0/16'
 end
 ```
 
@@ -88,13 +99,13 @@ case in 2.0.
 
 ### config.web_console.whiny_requests
 
-When a console cannot be shown for a given IP address or content type, a
-messages like the following is printed in the server logs:
+When a console cannot be shown for a given IP address or content type,
+messages such as the following is printed in the server logs:
 
 > Cannot render console from 192.168.1.133! Allowed networks:
 > 127.0.0.0/127.255.255.255, ::1
 
-If you don't wanna see this message anymore, set this option to `false`:
+If you don't want to see this message anymore, set this option to `false`:
 
 ```ruby
 Rails.application.configure do
@@ -104,7 +115,7 @@ end
 
 ### config.web_console.template_paths
 
-If you wanna style the console yourself, you can place `style.css` at a
+If you want to style the console yourself, then you can place `style.css` at a
 directory pointed by `config.web_console.template_paths`:
 
 ```ruby
@@ -113,14 +124,14 @@ Rails.application.configure do
 end
 ```
 
-You may wanna check the [templates] folder at the source tree for the files you
+You may want to check the [templates] folder at the source tree for the files you
 may override.
 
 ### config.web_console.mount_point
 
 Usually the middleware of _Web Console_ is mounted at `/__web_console`.
-If you wanna change the path for some reasons, you can specify it
-by `config.web_console.mount_point`:
+If there is a need to change the path, then you can specify it by
+`config.web_console.mount_point`:
 
 ```ruby
 Rails.application.configure do
@@ -132,26 +143,31 @@ end
 
 ### Where did /console go?
 
-The remote terminal emulator was extracted in its own gem that is no longer
+The remote terminal emulator was extracted in its own gem which is no longer
 bundled with _Web Console_.
 
 If you miss this feature, check out [rvt].
 
-### Why I constantly get unavailable session errors?
+### Why do I constantly get unavailable session errors?
 
 All of _Web Console_ sessions are stored in memory. If you happen to run on a
-multi-process server (like Unicorn) you may get unavailable session errors
+multi-process server (like Unicorn), you may encounter unavailable session errors
 while the server is still running. This is because a request may hit a
 different worker (process) that doesn't have the desired session in memory.
 To avoid that, if you use such servers in development, configure them so they
-server requests only out of one process.
+serve requests only out of one process.
+
+#### Passenger
+
+Enable sticky sessions for [Passenger on Nginx] or [Passenger on Apache] to
+prevent unavailable session errors.
 
 ### How to inspect local and instance variables?
 
 The interactive console executes Ruby code. Invoking `instance_variables` and
 `local_variables` will give you what you want.
 
-### Why does console only appear on error pages but not when I call it?
+### Why does the console only appear on error pages but not when I call it?
 
 This can be happening if you are using `Rack::Deflater`. Be sure that
 `WebConsole::Middleware` is used after `Rack::Deflater`. The easiest way to do
@@ -163,7 +179,7 @@ Rails.application.configure do
 end
 ```
 
-### Why I'm getting an undefined method `web_console`?
+### Why am I getting an undefined method `web_console`?
 
 Make sure your configuration lives in `config/environments/development.rb`.
 
@@ -183,3 +199,5 @@ Make sure your configuration lives in `config/environments/development.rb`.
 [templates]: https://github.com/rails/web-console/tree/master/lib/web_console/templates
 [rvt]: https://github.com/gsamokovarov/rvt
 [contributors]: https://github.com/rails/web-console/graphs/contributors
+[Passenger on Nginx]: https://www.phusionpassenger.com/library/config/nginx/reference/#passengerstickysessions
+[Passenger on Apache]: https://www.phusionpassenger.com/library/config/apache/reference/#passengerstickysessions

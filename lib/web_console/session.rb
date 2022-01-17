@@ -54,7 +54,17 @@ module WebConsole
     #
     # Returns a string of the Evaluator output.
     def eval(input)
-      @evaluator.eval(input)
+      result = @evaluator.eval(input)
+      save_result(input, result, $user_id) if Rails.application.config.webconsole_db_storage.present?
+      result
+    end
+
+    def save_result(input, result, user_id)
+      model =  Rails.application.config.webconsole_db_storage[:model].constantize
+      input_column = Rails.application.config.webconsole_db_storage[:columns][:input]
+      result_column = Rails.application.config.webconsole_db_storage[:columns][:result]
+      user_id_column = Rails.application.config.webconsole_db_storage[:columns][:user_id]
+      model.create({input_column => input, result_column => result, user_id_column => user_id})
     end
 
     # Switches the current binding to the one at specified +index+.
