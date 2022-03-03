@@ -103,7 +103,10 @@ module WebConsole
 
       def update_repl_session(id, request)
         json_response_with_session(id, request) do |session|
-          { output: session.eval(request.params[:input]) }
+          input = request.params[:input]
+          Rails.logger.info "WebConsole: input: #{input}"
+
+          { output: session.eval(input) }
         end
       end
 
